@@ -59,7 +59,7 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char keypad_scan(void){
+char keypad_scan(void){ // Function that reads the keypad inputs.
 	int row;
 	int col;
     char key_map [4][4] = {
@@ -69,7 +69,7 @@ char keypad_scan(void){
 			{'*', '0', '#', 'D'}, //4th row
     };
 
-	for (int i = 0; i<4; i++) {
+	for (int i = 0; i<4; i++) { // For loop for polling the keypad.
 	    HAL_GPIO_WritePin(ROW1_GPIO_Port, ROW1_Pin, SET);
 	    HAL_GPIO_WritePin(ROW2_GPIO_Port, ROW2_Pin, SET);
 	    HAL_GPIO_WritePin(ROW3_GPIO_Port, ROW3_Pin, SET);
@@ -92,12 +92,12 @@ char keypad_scan(void){
 			return key_map[row][col];
 		}
 	}
-	if (col==-1) {
+	if (col==-1) { // If no button is pressed returns '-'.
 		return '-';
 	}
 }
 
-int col_scan(void) {
+int col_scan(void) { // Function that finds the column of the input.
 	if (HAL_GPIO_ReadPin(COL1_GPIO_Port, COL1_Pin) == 0) {
 		return 0;
 	}else if (HAL_GPIO_ReadPin(COL2_GPIO_Port, COL2_Pin) == 0){
@@ -111,7 +111,7 @@ int col_scan(void) {
     }
 }
 
-extern void initialise_monitor_handles(void); //
+//extern void initialise_monitor_handles(void); // Function for semihosting.
 
 int seconds = 00;	// Variable that holds the seconds.
 int minutes = 00;	// Variable that holds the minutes.
@@ -127,7 +127,7 @@ char setTemp = 'F';		// Variable that holds what the current temperature reading
 
 char buffer[30];	// Variable that holds the string for the the LCD screen.
 
-int clock = 0;		//
+int clock = 0;		// Logic for the 1 second updates.
 
 /* USER CODE END 0 */
 
@@ -163,8 +163,8 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim4);
-  initialise_monitor_handles();
+  HAL_TIM_Base_Start_IT(&htim4); // Starts the timer interrupt.
+  //initialise_monitor_handles(); // Initializes terminal for semihosting.
 
   int setHour = 0;		// Used to change clock set up.
   int setMin = 0;		// Used to change clock set up.
@@ -174,8 +174,8 @@ int main(void)
   int code;						// Holds the user numbered input as an integer.
 
   //LCD to uC connections: RS - PC3, E - PA1, DB4 - PA4, DB5 - PB0, DB6 - PC1, DB7 - PC0
-  lcdSetup(GPIOC, GPIO_PIN_3, GPIOA, GPIO_PIN_1, GPIOA, GPIO_PIN_4, GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_1, GPIOC, GPIO_PIN_0);
-  lcdInit();
+  lcdSetup(GPIOC, GPIO_PIN_3, GPIOA, GPIO_PIN_1, GPIOA, GPIO_PIN_4, GPIOB, GPIO_PIN_0, GPIOC, GPIO_PIN_1, GPIOC, GPIO_PIN_0); // Setting pins to the LCD.
+  lcdInit(); // Initializes the LCD.
 
   /* USER CODE END 2 */
 
@@ -184,10 +184,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if (clock == 0) {
+	  if (clock == 0) { // If statement to work every second.
 		  // Temperature sensor
-		  HAL_ADC_Start(&hadc1);
-		  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+		  HAL_ADC_Start(&hadc1); // Initializes the ADC pin.
+		  HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY); // Waits for the ADC to finish converting.
 		  readValue = HAL_ADC_GetValue(&hadc1); // Gets the value from the temperature sensor.
 		  voltage = readValue * (3.3/4095); // Converts the ADC of the temperature sensor into voltage.
 		  tempC = voltage / 0.01; //Converts the voltage into Celsius.
@@ -203,11 +203,6 @@ int main(void)
 		  lcdString(buffer);
 		  clock = 1; // Resets logic to the next second.
 	  }
-
-
-
-	  // check if you can change seconds = -1 to something else
-
 
 	  // Time set
 	  char key = keypad_scan(); // Scans the key pad for any button pressed.
@@ -234,7 +229,7 @@ int main(void)
 				  lcdString(buffer);
 			  }
 
-			  if (key == '#') {
+			  if (key == '#') { // If statement for the end of the user input.
 				  code = atoi(setKey); // Converts the the string number into an integer.
 				  if (!setHour){ // If block to set the hours.
 					  if (1 <= code && code <= 12) { // Checks to see if number is between 1 and 12.
@@ -264,7 +259,7 @@ int main(void)
 				  }else if (setHour && setMin) { // If block to set the time of day.
 					  if (code == 1) { // If the user presses 1.
 						  strcpy(time,"AM"); // Set the time of day to AM.
-						  HAL_TIM_Base_Start_IT(&htim4); // Re-enables to timer.
+						  HAL_TIM_Base_Start_IT(&htim4); // Re-enables the timer.
 						  setHour = 0; // Resets set time set logic for later.
 						  setMin = 0; // Resets set time set logic for later.
 						  index = 0; // Resets index for later.
@@ -274,7 +269,7 @@ int main(void)
 						  break; // Exits set time while loop.
 					  }else if (code == 2) { // If the user presses 2.
 						  strcpy(time,"PM"); // Set the time of day to PM.
-						  HAL_TIM_Base_Start_IT(&htim4); // Re-enables to timer.
+						  HAL_TIM_Base_Start_IT(&htim4); // Re-enables the timer.
 						  setHour = 0; // Resets set time set logic for later.
 						  setMin = 0; // Resets set time set logic for later.
 						  index = 0; // Resets index for later.
@@ -570,7 +565,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // Function for th
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) { // Interrupt function for the blue push button.
-	if (setTemp == 'F') { // If statement to change between Celsius and Fahrenheit.
+	if (setTemp == 'F') { // If statements to change between Celsius and Fahrenheit.
 		setTemp = 'C';
 	}else if (setTemp == 'C') {
 		setTemp = 'F';
